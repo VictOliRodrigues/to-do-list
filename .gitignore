@@ -1,0 +1,35 @@
+# Dependencias
+node_modules/
+.pnp
+.pnp.js
+
+# Build
+dist/
+build/
+.vite/
+
+# Variaveis de ambiente - NUNCA commitar valores reais
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+
+# Editores / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Prisma
+server/prisma/*.db
+server/prisma/*.db-journal
+
+# Cobertura de testes
+coverage/
