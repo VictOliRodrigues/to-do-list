@@ -60,11 +60,51 @@ O Vite sobe em `http://localhost:5173` e faz proxy de `/api` para
 ### Rodando com Docker
 
 ```bash
+cp .env.example .env      # defina ao menos JWT_SECRET
 docker compose up --build
 ```
 
 O front fica em `http://localhost:8080`. O backend **não** tem porta publicada —
 é alcançável apenas pela rede interna do compose, como acontece no Coolify.
+
+## Endpoints da API
+
+O front chama sempre `/api/...`; o nginx remove o prefixo antes de repassar ao
+backend. As rotas abaixo são as do backend.
+
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| `POST` | `/auth/register` | não | Cria usuário (`name`, `username`, `password`) e devolve token |
+| `POST` | `/auth/login` | não | Autentica e devolve token |
+| `GET` | `/auth/me` | sim | Dados do usuário logado |
+| `GET` | `/tasks?search=&status=` | sim | Lista tarefas, com busca e filtro |
+| `POST` | `/tasks` | sim | Cria tarefa |
+| `GET` | `/tasks/:id` | sim | Detalhe da tarefa |
+| `PUT` | `/tasks/:id` | sim | Atualiza tarefa |
+| `DELETE` | `/tasks/:id` | sim | Exclui tarefa |
+| `GET` | `/health` | não | Healthcheck |
+
+Erros seguem o formato `{ "error": { "message": "...", "fields": { "campo": "..." } } }`.
+
+### Regras de validação
+
+- **Título** — obrigatório, de 1 a 200 caracteres. Texto só com espaços é rejeitado.
+- **Data prevista** — opcional, mas quando enviada precisa ser uma data real no
+  formato `AAAA-MM-DD`. Datas inexistentes como `2026-02-31` são recusadas.
+- **Status** — `PENDENTE` ou `CONCLUIDA` (padrão `PENDENTE`).
+- **Senha** — mínimo de 6 caracteres, armazenada com bcrypt.
+
+## Segurança
+
+- Senhas com bcrypt; o hash nunca sai em nenhuma resposta da API.
+- Login com usuário inexistente e com senha errada devolvem a mesma mensagem,
+  para não revelar quais usuários existem.
+- `helmet` e limite de tentativas (rate limit) nas rotas de autenticação.
+- Toda consulta de tarefa filtra pelo usuário do token — um usuário não lê, edita
+  nem exclui tarefa de outro.
+- O servidor recusa iniciar se `DATABASE_URL` ou `JWT_SECRET` estiverem ausentes:
+  não existe segredo padrão embutido no código.
+- Nenhum `.env` é versionado; apenas os `.env.example` com valores fictícios.
 
 ## Variáveis de ambiente
 
