@@ -1,0 +1,48 @@
+# Ambiente de desenvolvimento local.
+# No Coolify cada aplicacao usa seu proprio Dockerfile - este arquivo apenas
+# reproduz aqui a mesma topologia: o backend sem porta publicada, alcancavel
+# somente pela rede interna, e o front fazendo proxy de /api para ele.
+
+services:
+  db:
+    image: mysql:8
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-devroot}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-todolist}
+    ports:
+      # Exposto apenas para facilitar a inspecao local com um cliente MySQL.
+      - '3307:3306'
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-p${MYSQL_ROOT_PASSWORD:-devroot}']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build: ./server
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: mysql://root:${MYSQL_ROOT_PASSWORD:-devroot}@db:3306/${MYSQL_DATABASE:-todolist}
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env da raiz}
+      PORT: 3000
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+    # Sem "ports": o backend nao e alcancavel de fora, exatamente como no Coolify.
+
+  frontend:
+    build: ./client
+    restart: unless-stopped
+    environment:
+      BACKEND_URL: http://backend:3000
+    ports:
+      - '8080:80'
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
