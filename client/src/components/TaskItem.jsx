@@ -1,3 +1,11 @@
+import {
+  NEXT_ACTION_LABELS,
+  STATUS_BADGE_CLASS,
+  STATUS_LABELS,
+  TASK_STATUS,
+  nextStatus,
+} from '../constants/taskStatus.js';
+
 /** Formata AAAA-MM-DD (ou ISO) para DD/MM/AAAA sem deslocar o dia por fuso. */
 function formatDate(isoDate) {
   if (!isoDate) return null;
@@ -5,9 +13,9 @@ function formatDate(isoDate) {
   return `${day}/${month}/${year}`;
 }
 
-/** Uma tarefa pendente com data anterior a hoje esta atrasada. */
+/** Uma tarefa nao concluida com data anterior a hoje esta atrasada. */
 function isOverdue(task) {
-  if (!task.dueDate || task.status === 'CONCLUIDA') return false;
+  if (!task.dueDate || task.status === TASK_STATUS.CONCLUIDA) return false;
   const today = new Date();
   const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(
     today.getDate()
@@ -15,10 +23,11 @@ function isOverdue(task) {
   return task.dueDate.slice(0, 10) < todayIso;
 }
 
-export function TaskItem({ task, onEdit, onDelete, onToggleStatus, busy }) {
-  const concluida = task.status === 'CONCLUIDA';
+export function TaskItem({ task, onEdit, onDelete, onAdvanceStatus, busy }) {
+  const concluida = task.status === TASK_STATUS.CONCLUIDA;
   const atrasada = isOverdue(task);
   const dueDate = formatDate(task.dueDate);
+  const proximo = nextStatus(task.status);
 
   return (
     <li className={`task-item ${concluida ? 'concluida' : ''}`}>
@@ -28,8 +37,8 @@ export function TaskItem({ task, onEdit, onDelete, onToggleStatus, busy }) {
         {task.description && <p className="task-description">{task.description}</p>}
 
         <div className="task-meta">
-          <span className={`badge ${concluida ? 'badge-concluida' : 'badge-pendente'}`}>
-            {concluida ? 'Concluida' : 'Pendente'}
+          <span className={`badge ${STATUS_BADGE_CLASS[task.status]}`}>
+            {STATUS_LABELS[task.status]}
           </span>
 
           {dueDate && <span>Prevista para {dueDate}</span>}
@@ -42,11 +51,11 @@ export function TaskItem({ task, onEdit, onDelete, onToggleStatus, busy }) {
         <button
           type="button"
           className="btn-secondary"
-          onClick={() => onToggleStatus(task)}
+          onClick={() => onAdvanceStatus(task)}
           disabled={busy}
-          title={concluida ? 'Marcar como pendente' : 'Marcar como concluida'}
+          title={`Marcar como ${STATUS_LABELS[proximo].toLowerCase()}`}
         >
-          {concluida ? 'Reabrir' : 'Concluir'}
+          {NEXT_ACTION_LABELS[task.status]}
         </button>
 
         <button type="button" className="btn-secondary" onClick={() => onEdit(task)} disabled={busy}>

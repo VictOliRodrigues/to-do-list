@@ -1,3 +1,5 @@
+import { STATUS_FILTER_LABELS, STATUS_ORDER } from '../constants/taskStatus.js';
+
 /** Busca por texto e filtro por status. O estado vive na pagina de tarefas. */
 export function SearchBar({ search, status, onSearchChange, onStatusChange, onClear }) {
   const hasFilters = Boolean(search) || Boolean(status);
@@ -18,8 +20,11 @@ export function SearchBar({ search, status, onSearchChange, onStatusChange, onCl
         aria-label="Filtrar por status"
       >
         <option value="">Todos os status</option>
-        <option value="PENDENTE">Pendentes</option>
-        <option value="CONCLUIDA">Concluidas</option>
+        {STATUS_ORDER.map((value) => (
+          <option key={value} value={value}>
+            {STATUS_FILTER_LABELS[value]}
+          </option>
+        ))}
       </select>
 
       <button type="button" className="btn-secondary" onClick={onClear} disabled={!hasFilters}>

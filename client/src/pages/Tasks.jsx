@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, ApiError } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useToast } from '../context/ToastContext.jsx';
 import { TaskForm } from '../components/TaskForm.jsx';
 import { TaskList } from '../components/TaskList.jsx';
 import { SearchBar } from '../components/SearchBar.jsx';
+import { ConfirmDialog } from '../components/ConfirmDialog.jsx';
+import { STATUS_LABELS, nextStatus } from '../constants/taskStatus.js';
 
 export function Tasks() {
   const { user, logout } = useAuth();
+  const { showSuccess, showError } = useToast();
 
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,6 +22,8 @@ export function Tasks() {
   const [editingTask, setEditingTask] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [busyId, setBusyId] = useState(null);
+  // Tarefa aguardando confirmacao de exclusao; tambem controla o dialogo.
+  const [taskToDelete, setTaskToDelete] = useState(null);
 
   const formPanelRef = useRef(null);
 
@@ -52,9 +58,10 @@ export function Tasks() {
     try {
       await api.createTask(data);
       await refresh();
+      showSuccess('Tarefa criada com sucesso.');
     } catch (err) {
       if (err instanceof ApiError && Object.keys(err.fields).length === 0) {
-        setError(err.message);
+        showError(err.message);
       }
       throw err; // o TaskForm exibe os erros por campo
     } finally {
@@ -69,9 +76,10 @@ export function Tasks() {
       await api.updateTask(editingTask.id, data);
       setEditingTask(null);
       await refresh();
+      showSuccess('Tarefa atualizada com sucesso.');
     } catch (err) {
       if (err instanceof ApiError && Object.keys(err.fields).length === 0) {
-        setError(err.message);
+        showError(err.message);
       }
       throw err;
     } finally {
@@ -84,32 +92,37 @@ export function Tasks() {
     formPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const handleDelete = async (task) => {
-    if (!window.confirm(`Excluir a tarefa "${task.title}"?`)) return;
+  const handleDelete = (task) => setTaskToDelete(task);
+
+  const confirmDelete = async () => {
+    const task = taskToDelete;
+    if (!task) return;
 
     setBusyId(task.id);
-    setError('');
     try {
       await api.deleteTask(task.id);
       if (editingTask?.id === task.id) setEditingTask(null);
+      setTaskToDelete(null);
       await refresh();
+      showSuccess('Tarefa excluida.');
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Nao foi possivel excluir a tarefa.');
+      setTaskToDelete(null);
+      showError(err instanceof ApiError ? err.message : 'Nao foi possivel excluir a tarefa.');
     } finally {
       setBusyId(null);
     }
   };
 
-  const handleToggleStatus = async (task) => {
+  const handleAdvanceStatus = async (task) => {
+    const status = nextStatus(task.status);
+
     setBusyId(task.id);
-    setError('');
     try {
-      await api.updateTask(task.id, {
-        status: task.status === 'CONCLUIDA' ? 'PENDENTE' : 'CONCLUIDA',
-      });
+      await api.updateTask(task.id, { status });
       await refresh();
+      showSuccess(`Tarefa marcada como ${STATUS_LABELS[status].toLowerCase()}.`);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Nao foi possivel atualizar o status.');
+      showError(err instanceof ApiError ? err.message : 'Nao foi possivel atualizar o status.');
     } finally {
       setBusyId(null);
     }
@@ -164,10 +177,22 @@ export function Tasks() {
           hasFilters={Boolean(search.trim() || status)}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          onToggleStatus={handleToggleStatus}
+          onAdvanceStatus={handleAdvanceStatus}
           busyId={busyId}
         />
       </main>
+
+      <ConfirmDialog
+        open={Boolean(taskToDelete)}
+        title="Excluir tarefa"
+        message={`Tem certeza que deseja excluir a tarefa "${taskToDelete?.title}"? Esta acao nao pode ser desfeita.`}
+        confirmLabel="Excluir"
+        busyLabel="Excluindo..."
+        variant="danger"
+        busy={busyId === taskToDelete?.id}
+        onConfirm={confirmDelete}
+        onCancel={() => setTaskToDelete(null)}
+      />
     </>
   );
 }

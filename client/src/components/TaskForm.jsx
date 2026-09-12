@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
+import { STATUS_LABELS, STATUS_ORDER, TASK_STATUS } from '../constants/taskStatus.js';
 
-const EMPTY = { title: '', description: '', dueDate: '', status: 'PENDENTE' };
+const EMPTY = { title: '', description: '', dueDate: '', status: TASK_STATUS.PENDENTE };
 
 /**
  * Formulario de criacao e edicao. Quando `task` vem preenchida, opera em modo
@@ -18,7 +19,7 @@ export function TaskForm({ task, onSubmit, onCancel, submitting }) {
         description: task.description ?? '',
         // A API devolve ISO completo; o input[type=date] espera AAAA-MM-DD.
         dueDate: task.dueDate ? task.dueDate.slice(0, 10) : '',
-        status: task.status ?? 'PENDENTE',
+        status: task.status ?? TASK_STATUS.PENDENTE,
       });
     } else {
       setForm(EMPTY);
@@ -121,8 +122,11 @@ export function TaskForm({ task, onSubmit, onCancel, submitting }) {
         <div className="field">
           <label htmlFor="status">Status</label>
           <select id="status" name="status" value={form.status} onChange={handleChange}>
-            <option value="PENDENTE">Pendente</option>
-            <option value="CONCLUIDA">Concluida</option>
+            {STATUS_ORDER.map((value) => (
+              <option key={value} value={value}>
+                {STATUS_LABELS[value]}
+              </option>
+            ))}
           </select>
         </div>
       </div>

@@ -36,7 +36,10 @@ model Task {
   @@map("tasks")
 }
 
+// A ordem de declaracao define a ordenacao por status na listagem
+// (orderBy status: 'asc'), por isso EM_ANDAMENTO fica no meio.
 enum TaskStatus {
   PENDENTE
+  EM_ANDAMENTO
   CONCLUIDA
 }

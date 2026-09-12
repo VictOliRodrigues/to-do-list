@@ -1,6 +1,6 @@
 import { TaskItem } from './TaskItem.jsx';
 
-export function TaskList({ tasks, loading, hasFilters, onEdit, onDelete, onToggleStatus, busyId }) {
+export function TaskList({ tasks, loading, hasFilters, onEdit, onDelete, onAdvanceStatus, busyId }) {
   if (loading) {
     return <div className="empty-state">Carregando tarefas...</div>;
   }
@@ -23,7 +23,7 @@ export function TaskList({ tasks, loading, hasFilters, onEdit, onDelete, onToggl
           task={task}
           onEdit={onEdit}
           onDelete={onDelete}
-          onToggleStatus={onToggleStatus}
+          onAdvanceStatus={onAdvanceStatus}
           busy={busyId === task.id}
         />
       ))}

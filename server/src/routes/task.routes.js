@@ -53,8 +53,8 @@ const descriptionSchema = z
     return trimmed === '' ? null : trimmed;
   });
 
-const statusSchema = z.enum(['PENDENTE', 'CONCLUIDA'], {
-  errorMap: () => ({ message: 'O status deve ser PENDENTE ou CONCLUIDA.' }),
+const statusSchema = z.enum(['PENDENTE', 'EM_ANDAMENTO', 'CONCLUIDA'], {
+  errorMap: () => ({ message: 'O status deve ser PENDENTE, EM_ANDAMENTO ou CONCLUIDA.' }),
 });
 
 const createTaskSchema = z.object({
