@@ -50,12 +50,14 @@ curl http://localhost:3000/health
 
 ```bash
 cd client
+cp .env.example .env      # opcional: só se o backend não estiver em :3000
 npm install
 npm run dev
 ```
 
-O Vite sobe em `http://localhost:5173` e faz proxy de `/api` para
-`http://localhost:3000`, espelhando o comportamento do nginx em produção.
+O Vite sobe em `http://localhost:5173` e faz proxy de `/api` para o endereço em
+`BACKEND_URL` (padrão `http://localhost:3000`), espelhando o comportamento do
+nginx em produção.
 
 ### Rodando com Docker
 
@@ -127,7 +129,12 @@ O servidor aborta no boot se `DATABASE_URL` ou `JWT_SECRET` estiverem ausentes.
 
 | Variável | Obrigatória | Descrição |
 |----------|-------------|-----------|
-| `BACKEND_URL` | sim | URL **interna** do backend, ex.: `http://backend:3000`. Lida pelo nginx, nunca pelo navegador |
+| `BACKEND_URL` | sim em produção | URL **interna** do backend, ex.: `http://backend:3000`. Em dev, padrão `http://localhost:3000` |
+
+`BACKEND_URL` **não** leva o prefixo `VITE_` de propósito: o Vite só embute no
+bundle as variáveis prefixadas. Quem a lê é sempre o servidor — o proxy do Vite
+em desenvolvimento e o nginx em produção — então a URL do backend nunca chega ao
+navegador, e é por isso que ele pode ficar sem URL pública.
 
 ## Deploy no Coolify
 
