@@ -1,6 +1,8 @@
 import express from 'express';
 import helmet from 'helmet';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
+import authRoutes from './routes/auth.routes.js';
+import taskRoutes from './routes/task.routes.js';
 
 export function createApp() {
   const app = express();
@@ -16,6 +18,9 @@ export function createApp() {
   app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
   });
+
+  app.use('/auth', authRoutes);
+  app.use('/tasks', taskRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
