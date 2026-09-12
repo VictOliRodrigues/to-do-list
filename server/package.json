@@ -1,0 +1,30 @@
+{
+  "name": "todo-list-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "API de gerenciamento de tarefas",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "prisma:generate": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.1.0",
+    "bcryptjs": "^2.4.3",
+    "express": "^5.0.1",
+    "express-rate-limit": "^7.4.1",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "prisma": "^6.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
