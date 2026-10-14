@@ -1,7 +1,7 @@
 /**
  * Status de tarefa, espelhando o enum TaskStatus do Prisma.
- * A ordem de STATUS_ORDER e a mesma da declaracao no schema, que e a usada
- * pelo servidor para ordenar a listagem.
+ * A ordem de STATUS_ORDER e a mesma da declaracao no schema e define o ciclo
+ * de status. A ordem da listagem e outra e e definida pelo servidor.
  */
 export const TASK_STATUS = {
   PENDENTE: 'PENDENTE',
