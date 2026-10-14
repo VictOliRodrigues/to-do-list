@@ -57,6 +57,13 @@ const statusSchema = z.enum(['PENDENTE', 'EM_ANDAMENTO', 'CONCLUIDA'], {
   errorMap: () => ({ message: 'O status deve ser PENDENTE, EM_ANDAMENTO ou CONCLUIDA.' }),
 });
 
+/**
+ * Ordem de exibicao da listagem: em andamento no topo, pendentes no meio e
+ * concluidas no final. Difere da ordem do enum (que segue o ciclo de status),
+ * por isso a ordenacao por status e feita em memoria e nao no banco.
+ */
+const STATUS_DISPLAY_ORDER = { EM_ANDAMENTO: 0, PENDENTE: 1, CONCLUIDA: 2 };
+
 const createTaskSchema = z.object({
   title: titleSchema,
   description: descriptionSchema,
@@ -98,8 +105,11 @@ router.get(
           OR: [{ title: { contains: search } }, { description: { contains: search } }],
         }),
       },
-      orderBy: [{ status: 'asc' }, { dueDate: 'asc' }, { createdAt: 'desc' }],
+      orderBy: [{ dueDate: 'asc' }, { createdAt: 'desc' }],
     });
+
+    // O sort e estavel, entao dentro de cada status vale a ordem vinda do banco.
+    tasks.sort((a, b) => STATUS_DISPLAY_ORDER[a.status] - STATUS_DISPLAY_ORDER[b.status]);
 
     res.json({ tasks });
   })
